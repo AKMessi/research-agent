@@ -27,7 +27,6 @@ A production-grade research agent that searches the web, analyzes sources, and d
 
 **Result:** Full roadmap with prerequisites, free resources, timeline, common mistakes, and 14 verified sources - in 90 seconds.
 
-[Watch Demo Video](your-video-link-here)
 
 ## 🚀 Features
 
@@ -62,8 +61,8 @@ A production-grade research agent that searches the web, analyzes sources, and d
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ultimate-research-agent.git
-cd ultimate-research-agent
+git clone https://github.com/AKMessi/research-agent.git
+cd research-agent
 ```
 
 ### 2. Install Dependencies
@@ -257,11 +256,9 @@ MIT License - feel free to use, modify, and distribute.
 - [Ollama](https://ollama.com) for local LLM inference
 - [Firecrawl](https://firecrawl.dev) for web scraping
 - [Serper](https://serper.dev) for Google Search API
-- Built with [Kimi Code](https://kimi.moonshot.cn)
 
 ---
 
 **Star ⭐ this repo if you found it useful!**
 
-**Questions?** Drop an issue or reach out on X: [@YOUR_HANDLE]
-# research-agent
+**Questions?** Drop an issue or reach out on X: [@aaryan_kakad]
