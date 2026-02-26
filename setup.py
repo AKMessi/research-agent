@@ -1,6 +1,4 @@
-"""
-Setup script for the Ultimate Research Agent.
-"""
+"""Setup script for the Ultimate Research Agent."""
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -12,29 +10,36 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="ultimate-research-agent",
     version="1.0.0",
-    author="AI Research Team",
-    description="Intelligent research agent with structured data output",
+    author="Your Name",
+    author_email="your.email@example.com",
+    description="Production-grade AI research agent with structured output",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    url="https://github.com/YOUR_USERNAME/ultimate-research-agent",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
-        "Intended Audience :: Research",
+        "Intended Audience :: End Users/Desktop",
+        "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     install_requires=requirements,
     entry_points={
         "console_scripts": [
             "research-agent=main:main",
         ],
+    },
+    keywords="research ai agent llm ollama web-search automation",
+    project_urls={
+        "Bug Reports": "https://github.com/YOUR_USERNAME/ultimate-research-agent/issues",
+        "Source": "https://github.com/YOUR_USERNAME/ultimate-research-agent",
     },
 )

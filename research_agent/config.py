@@ -1,6 +1,4 @@
-"""
-Configuration management for the Research Agent.
-"""
+"""Configuration management for the Research Agent."""
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,8 +18,12 @@ class Config:
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     firecrawl_api_key: str = os.getenv("FIRECRAWL_API_KEY", "")
     
+    # Ollama Configuration
+    ollama_url: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
+    ollama_model: str = os.getenv("OLLAMA_MODEL", "llama3.2")
+    ollama_timeout: int = int(os.getenv("OLLAMA_TIMEOUT", "45"))
+    
     # LLM Configuration
-    default_llm_model: str = os.getenv("DEFAULT_LLM_MODEL", "gemini-2.5-flash")
     temperature: float = float(os.getenv("TEMPERATURE", "0.3"))
     
     # Search Configuration
@@ -46,6 +48,11 @@ class Config:
     def is_gemini_configured(self) -> bool:
         """Check if Gemini API key is configured."""
         return bool(self.gemini_api_key)
+    
+    @property
+    def is_firecrawl_configured(self) -> bool:
+        """Check if Firecrawl API key is configured."""
+        return bool(self.firecrawl_api_key)
 
 
 # Global configuration instance

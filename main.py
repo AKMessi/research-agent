@@ -13,7 +13,7 @@ import os
 import sys
 import asyncio
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 import typer
 from rich.console import Console
@@ -27,6 +27,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from research_agent.core.ultimate_agent import create_ultimate_agent
 from research_agent.core.state import ResearchStatus
 from research_agent.config import config
+
+
+# Type alias for cleaner code
+ResearchResult = Any
 
 app = typer.Typer(name="research-agent", add_completion=False, help="Ultimate Research Agent")
 console = Console(legacy_windows=True)
@@ -49,12 +53,16 @@ def check_config() -> bool:
     missing = []
     if not config.is_serper_configured:
         missing.append("SERPER_API_KEY")
-    if not config.is_gemini_configured and not config.firecrawl_api_key:
-        console.print("[yellow]Warning: No LLM or Firecrawl configured - using basic extraction[/yellow]")
     
     if missing:
         console.print(f"[red]Missing required: {', '.join(missing)}[/red]")
+        console.print("[dim]Get free API key at: https://serper.dev[/dim]")
         return False
+    
+    # Check optional services
+    if not config.is_firecrawl_configured:
+        console.print("[yellow]Tip: Add FIRECRAWL_API_KEY for better content extraction[/yellow]")
+    
     return True
 
 
@@ -127,8 +135,8 @@ def info():
     table.add_column("Status", style="green")
     
     table.add_row("Serper API (Search)", "OK" if config.is_serper_configured else "Missing")
-    table.add_row("Firecrawl API", "OK" if config.firecrawl_api_key else "Not configured")
-    table.add_row("Ollama (Local LLM)", "Auto-detect on run")
+    table.add_row("Firecrawl API", "OK" if config.is_firecrawl_configured else "Not configured (optional)")
+    table.add_row("Ollama (Local LLM)", f"{config.ollama_model} @ {config.ollama_url}")
     
     console.print(table)
     
