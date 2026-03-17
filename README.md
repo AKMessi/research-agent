@@ -56,7 +56,7 @@ A production-grade research agent that searches the web, analyzes sources, and d
 
 - Python 3.10+
 - [Ollama](https://ollama.com) installed locally
-- API keys: Serper (Google Search)
+- API keys: Browserbase Search (primary), Serper (optional fallback)
 
 ### 1. Clone Repository
 
@@ -90,11 +90,13 @@ cp .env.example .env
 Edit `.env` with your API keys:
 
 ```env
-SERPER_API_KEY=your_serper_key_here
+BROWSERBASE_API_KEY=your_browserbase_key_here
+SERPER_API_KEY=your_serper_key_here  # Optional fallback
 FIRECRAWL_API_KEY=your_firecrawl_key_here  # Optional but recommended
 ```
 
 **Get free API keys:**
+- [Browserbase Search](https://docs.browserbase.com/features/search) - primary web search provider
 - [Serper.dev](https://serper.dev) - 2,500 free searches/month
 - [Firecrawl](https://firecrawl.dev) - 500 free credits
 
@@ -153,7 +155,9 @@ AI Synthesis → Format Selection → Structured Output
 **Components:**
 - `QueryAnalyzer` - Detects research domain (products/places/how-to)
 - `UnifiedSynthesisEngine` - Formats output based on domain
-- `SerperSearchTool` - Google Search API
+- `WebSearchTool` - Browserbase Search primary provider with Serper fallback
+- `BrowserbaseSearchTool` - Browserbase Search API
+- `SerperSearchTool` - Backup Google Search API
 - `FirecrawlClient` - Deep web scraping (top 5 sources)
 - `Ollama Integration` - Local LLM for synthesis
 
@@ -185,6 +189,9 @@ Edit `.env` file:
 
 ```env
 # Required
+BROWSERBASE_API_KEY=your_key_here
+
+# Optional fallback
 SERPER_API_KEY=your_key_here
 
 # Optional (enhances results)
@@ -255,7 +262,8 @@ MIT License - feel free to use, modify, and distribute.
 
 - [Ollama](https://ollama.com) for local LLM inference
 - [Firecrawl](https://firecrawl.dev) for web scraping
-- [Serper](https://serper.dev) for Google Search API
+- [Browserbase Search](https://docs.browserbase.com/features/search) for the default web search API
+- [Serper](https://serper.dev) for fallback Google Search API
 
 ---
 

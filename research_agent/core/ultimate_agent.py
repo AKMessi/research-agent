@@ -21,7 +21,7 @@ from rich.table import Table
 from research_agent.core.state import ResearchState, ResearchStatus, DataStructureType
 from research_agent.core.query_analyzer import QueryAnalyzer, OutputFormat
 from research_agent.core.unified_synthesis import UnifiedSynthesisEngine, SynthesisResult
-from research_agent.tools.serper_search import SerperSearchTool
+from research_agent.tools.web_search import WebSearchTool
 from research_agent.tools.reddit_scraper import get_reddit_scraper
 from research_agent.config import config
 
@@ -34,7 +34,7 @@ class UltimateResearchAgent:
     """
     
     def __init__(self, use_firecrawl: bool = True):
-        self.search_tool = SerperSearchTool()
+        self.search_tool = WebSearchTool()
         self.reddit = get_reddit_scraper()
         self.synthesis = UnifiedSynthesisEngine()
         self.use_firecrawl = use_firecrawl
@@ -109,7 +109,7 @@ class UltimateResearchAgent:
                     'title': r.title,
                     'link': r.link,
                     'snippet': r.snippet,
-                    'source': 'google'
+                    'source': r.source
                 })
         except Exception as e:
             console.print(f"[dim]Search warning: {e}[/dim]")

@@ -50,14 +50,16 @@ def print_banner():
 
 def check_config() -> bool:
     """Check required API keys."""
-    missing = []
-    if not config.is_serper_configured:
-        missing.append("SERPER_API_KEY")
-    
-    if missing:
-        console.print(f"[red]Missing required: {', '.join(missing)}[/red]")
-        console.print("[dim]Get free API key at: https://serper.dev[/dim]")
+    if not config.is_search_configured:
+        console.print("[red]Missing required: BROWSERBASE_API_KEY or SERPER_API_KEY[/red]")
+        console.print("[dim]Browserbase docs: https://docs.browserbase.com/features/search[/dim]")
+        console.print("[dim]Serper fallback: https://serper.dev[/dim]")
         return False
+
+    if not config.is_browserbase_configured and config.is_serper_configured:
+        console.print("[yellow]Browserbase not configured. Using Serper as the only search provider.[/yellow]")
+    elif config.is_browserbase_configured and not config.is_serper_configured:
+        console.print("[yellow]Serper fallback not configured. Browserbase will be used without backup.[/yellow]")
     
     # Check optional services
     if not config.is_firecrawl_configured:
@@ -134,7 +136,8 @@ def info():
     table.add_column("Service", style="cyan")
     table.add_column("Status", style="green")
     
-    table.add_row("Serper API (Search)", "OK" if config.is_serper_configured else "Missing")
+    table.add_row("Browserbase Search (Primary)", "OK" if config.is_browserbase_configured else "Missing")
+    table.add_row("Serper API (Fallback)", "OK" if config.is_serper_configured else "Not configured")
     table.add_row("Firecrawl API", "OK" if config.is_firecrawl_configured else "Not configured (optional)")
     table.add_row("Ollama (Local LLM)", f"{config.ollama_model} @ {config.ollama_url}")
     

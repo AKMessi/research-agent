@@ -14,6 +14,7 @@ class Config:
     """Application configuration."""
     
     # API Keys
+    browserbase_api_key: str = os.getenv("BROWSERBASE_API_KEY", "")
     serper_api_key: str = os.getenv("SERPER_API_KEY", "")
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     firecrawl_api_key: str = os.getenv("FIRECRAWL_API_KEY", "")
@@ -40,9 +41,19 @@ class Config:
         self.output_dir.mkdir(parents=True, exist_ok=True)
     
     @property
+    def is_browserbase_configured(self) -> bool:
+        """Check if Browserbase Search API key is configured."""
+        return bool(self.browserbase_api_key)
+
+    @property
     def is_serper_configured(self) -> bool:
         """Check if Serper API key is configured."""
         return bool(self.serper_api_key)
+
+    @property
+    def is_search_configured(self) -> bool:
+        """Check if any web search provider is configured."""
+        return self.is_browserbase_configured or self.is_serper_configured
     
     @property
     def is_gemini_configured(self) -> bool:
