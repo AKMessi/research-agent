@@ -105,7 +105,7 @@ def research(
         result = agent.research_sync(query, context)
         
         if result.status == ResearchStatus.COMPLETED and result.output_file_path:
-            console.print(f"\n[bold green]📄 Output saved to:[/bold green] {result.output_file_path}")
+            console.print(f"\n[bold green]Output saved to:[/bold green] {result.output_file_path}")
             
             # Preview if verbose
             if verbose and result.extracted_data:

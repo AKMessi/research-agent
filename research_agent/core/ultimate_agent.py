@@ -77,6 +77,7 @@ class UltimateResearchAgent:
             result = self.synthesis.synthesize(query, sources)
             
             # Step 4: Format output
+            state.sources = sources
             state = self._format_output(state, result, sources)
             
             # Step 5: Finalize
@@ -96,8 +97,9 @@ class UltimateResearchAgent:
         full_query = f"{query} {context}" if context else query
         
         # Add freshness if no year specified
-        if not any(y in full_query for y in ['2023', '2024', '2025']):
-            full_query += " 2024"
+        current_year = str(datetime.now().year)
+        if not any(year in full_query for year in ['2023', '2024', '2025', '2026', '2027']):
+            full_query += f" {current_year}"
         
         sources = []
         
@@ -130,7 +132,20 @@ class UltimateResearchAgent:
         except:
             pass
         
-        return sources
+        deduped = []
+        seen_links = set()
+        for source in sources:
+            link = (source.get('link') or '').strip()
+            title = (source.get('title') or '').strip()
+            if not link and not title:
+                continue
+            key = link or title.lower()
+            if key in seen_links:
+                continue
+            seen_links.add(key)
+            deduped.append(source)
+
+        return deduped
     
     async def _enrich_sources(self, sources: List[Dict]):
         """Fetch full content from top sources."""
@@ -206,7 +221,12 @@ class UltimateResearchAgent:
             state.output_format = DataStructureType.MARKDOWN
         
         state.output_file_path = str(filepath)
-        state.extracted_data = result.content.get('items', result.content.get('profiles', []))
+        state.extracted_data = (
+            result.content.get('items')
+            or result.content.get('profiles')
+            or result.content.get('events')
+            or []
+        )
         
         # Print summary
         self._print_summary(result)
@@ -222,9 +242,19 @@ class UltimateResearchAgent:
         
         items = content.get('items', [])
         if items:
-            writer = csv.DictWriter(output, fieldnames=items[0].keys())
+            normalized = []
+            for item in items:
+                normalized.append({
+                    key: "; ".join(value) if isinstance(value, list) else value
+                    for key, value in item.items()
+                })
+            writer = csv.DictWriter(output, fieldnames=normalized[0].keys())
             writer.writeheader()
-            writer.writerows(items)
+            writer.writerows(normalized)
+        else:
+            writer = csv.writer(output)
+            writer.writerow(["summary"])
+            writer.writerow([content.get("summary", "No structured items were extracted.")])
         
         return output.getvalue()
     
@@ -235,33 +265,66 @@ class UltimateResearchAgent:
             "",
             f"**Domain:** {result.domain}  ",
             f"**Sources:** {result.sources_used}  ",
-            f"**Confidence:** {result.confidence:.0%}",
+            f"**Confidence:** {result.confidence:.0%}  ",
+            f"**Synthesis Backend:** {result.backend}",
             "",
             "## Summary",
             "",
         ]
         
-        # Add content
+        lines.append(result.content.get('summary', 'No summary generated.'))
+
+        if result.content.get('key_findings'):
+            lines.extend(["", "## Key Findings", ""])
+            for finding in result.content['key_findings'][:8]:
+                lines.append(f"- {finding}")
+
         if 'items' in result.content:
-            lines.append("### Key Findings\n")
+            lines.extend(["", "## Comparison Table", ""])
             for item in result.content['items'][:10]:
-                name = item.get('name', 'Unknown')
+                lines.append(f"### {item.get('name', 'Unknown')}")
                 price = item.get('price', 'N/A')
-                lines.append(f"- **{name}** ({price})")
+                lines.append(f"- Price: {price}")
                 if item.get('best_for'):
-                    lines.append(f"  - Best for: {item['best_for']}")
+                    lines.append(f"- Best for: {item['best_for']}")
+                features = item.get('features') or []
+                if features:
+                    lines.append(f"- Features: {'; '.join(features)}")
+                if item.get('notes'):
+                    lines.append(f"- Notes: {item['notes']}")
                 lines.append("")
-        
         elif 'profiles' in result.content:
-            lines.append("### Profiles\n")
+            lines.extend(["", "## Profiles", ""])
             for profile in result.content['profiles'][:10]:
                 lines.append(f"### {profile.get('name', 'Unknown')}")
-                if profile.get('details'):
-                    lines.append(profile['details'])
+                if profile.get('role'):
+                    lines.append(f"- Role: {profile['role']}")
+                if profile.get('organization'):
+                    lines.append(f"- Organization: {profile['organization']}")
+                for detail in profile.get('details', [])[:4]:
+                    lines.append(f"- {detail}")
                 lines.append("")
-        
-        else:
-            lines.append(result.content.get('content', 'No content generated'))
+        elif 'events' in result.content:
+            lines.extend(["", "## Timeline", ""])
+            for event in result.content['events'][:10]:
+                title = event.get('title', 'Event')
+                date = event.get('date', 'Date not specified')
+                lines.append(f"- **{date}**: {title}")
+                if event.get('details'):
+                    lines.append(f"  {event['details']}")
+
+        for section in result.content.get('sections', []):
+            heading = section.get('heading')
+            bullets = section.get('bullets', [])
+            if heading and bullets:
+                lines.extend(["", f"## {heading}", ""])
+                for bullet in bullets:
+                    lines.append(f"- {bullet}")
+
+        if result.content.get('recommendations'):
+            lines.extend(["", "## Recommendations", ""])
+            for recommendation in result.content['recommendations'][:6]:
+                lines.append(f"- {recommendation}")
         
         # Add sources
         lines.extend([
@@ -269,10 +332,13 @@ class UltimateResearchAgent:
             "## Sources",
             "",
         ])
-        for s in sources[:10]:
+        source_list = result.content.get('sources') or sources[:10]
+        for s in source_list[:10]:
             title = s.get('title', 'Link')[:60]
             link = s.get('link', '')
-            lines.append(f"- [{title}]({link})")
+            provider = s.get('source')
+            suffix = f" ({provider})" if provider else ""
+            lines.append(f"- [{title}]({link}){suffix}")
         
         return "\n".join(lines)
     
@@ -284,11 +350,14 @@ class UltimateResearchAgent:
         
         table.add_row("Domain", result.domain)
         table.add_row("Format", result.format)
+        table.add_row("Backend", result.backend)
         
         if 'items' in result.content:
             table.add_row("Items Found", str(len(result.content['items'])))
         elif 'profiles' in result.content:
             table.add_row("Profiles Found", str(len(result.content['profiles'])))
+        elif 'events' in result.content:
+            table.add_row("Events Found", str(len(result.content['events'])))
         
         table.add_row("Sources", str(result.sources_used))
         table.add_row("Confidence", f"{result.confidence:.0%}")

@@ -9,6 +9,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _is_configured(value: str) -> bool:
+    """Check whether an environment value looks like a real configured secret."""
+    if not value:
+        return False
+
+    normalized = value.strip().lower()
+    placeholders = {
+        "your_browserbase_api_key_here",
+        "your_serper_api_key_here",
+        "your_gemini_api_key_here",
+        "your_firecrawl_api_key_here",
+        "your_key_here",
+        "changeme",
+    }
+    return normalized not in placeholders and not normalized.startswith("your_")
+
+
 @dataclass
 class Config:
     """Application configuration."""
@@ -43,12 +60,12 @@ class Config:
     @property
     def is_browserbase_configured(self) -> bool:
         """Check if Browserbase Search API key is configured."""
-        return bool(self.browserbase_api_key)
+        return _is_configured(self.browserbase_api_key)
 
     @property
     def is_serper_configured(self) -> bool:
         """Check if Serper API key is configured."""
-        return bool(self.serper_api_key)
+        return _is_configured(self.serper_api_key)
 
     @property
     def is_search_configured(self) -> bool:
@@ -58,12 +75,12 @@ class Config:
     @property
     def is_gemini_configured(self) -> bool:
         """Check if Gemini API key is configured."""
-        return bool(self.gemini_api_key)
+        return _is_configured(self.gemini_api_key)
     
     @property
     def is_firecrawl_configured(self) -> bool:
         """Check if Firecrawl API key is configured."""
-        return bool(self.firecrawl_api_key)
+        return _is_configured(self.firecrawl_api_key)
 
 
 # Global configuration instance

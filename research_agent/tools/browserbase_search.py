@@ -80,13 +80,7 @@ class BrowserbaseSearchTool:
         for position, item in enumerate(raw_results, start=1):
             title = item.get("title") or item.get("name") or ""
             link = item.get("url") or item.get("link") or item.get("href") or ""
-            snippet = (
-                item.get("snippet")
-                or item.get("description")
-                or item.get("text")
-                or item.get("content")
-                or ""
-            )
+            snippet = self._build_snippet(item)
 
             if not any([title, link, snippet]):
                 continue
@@ -102,6 +96,27 @@ class BrowserbaseSearchTool:
             )
 
         return results
+
+    def _build_snippet(self, item: Dict[str, Any]) -> str:
+        """Build the best available snippet from Browserbase result fields."""
+        snippet = (
+            item.get("snippet")
+            or item.get("description")
+            or item.get("text")
+            or item.get("content")
+            or ""
+        )
+
+        if snippet:
+            return snippet
+
+        metadata_parts = []
+        if item.get("author"):
+            metadata_parts.append(f"Author: {item['author']}")
+        if item.get("publishedDate"):
+            metadata_parts.append(f"Published: {item['publishedDate'][:10]}")
+
+        return " | ".join(metadata_parts)
 
     def _extract_result_items(self, data: Any) -> List[Dict[str, Any]]:
         """Handle a few common API response layouts defensively."""

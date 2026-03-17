@@ -42,7 +42,7 @@ class QueryAnalyzer:
     
     DOMAIN_PATTERNS = {
         ResearchDomain.PRODUCTS: {
-            'keywords': ['buy', 'best', 'budget', 'price', 'review', 'compare', 'vs'],
+            'keywords': ['buy', 'budget', 'price', 'review', 'under $', 'deal', 'specs'],
             'entities': ['laptop', 'phone', 'camera', 'headphones', 'gpu', 'monitor', 
                         'keyboard', 'mouse', 'tablet', 'watch', 'earbuds', 'speaker',
                         'drone', 'console', 'bike', 'car', 'shoes', 'bag'],
@@ -68,15 +68,15 @@ class QueryAnalyzer:
             'entities': ['2024', '2025', 'annual', 'upcoming'],
         },
         ResearchDomain.HOW_TO: {
-            'keywords': ['how to', 'guide', 'tutorial', 'learn', 'steps', 'setup'],
-            'entities': ['install', 'configure', 'build', 'create', 'make'],
+            'keywords': ['how to', 'guide', 'tutorial', 'learn', 'steps', 'setup', 'ways to', 'methods', 'roadmap'],
+            'entities': ['install', 'configure', 'build', 'create', 'make', 'earn', 'improve', 'start'],
         },
         ResearchDomain.NEWS: {
             'keywords': ['news', 'latest', 'recent', 'update', 'trending', 'happening'],
-            'entities': ['today', 'this week', 'this month', '2024', '2025'],
+            'entities': ['today', 'this week', 'this month', '2024', '2025', '2026'],
         },
         ResearchDomain.COMPARISON: {
-            'keywords': ['vs', 'versus', 'compare', 'difference', 'better', 'or'],
+            'keywords': ['vs', 'versus', 'compare', 'difference', 'better'],
             'entities': [],
         },
     }
@@ -105,6 +105,19 @@ class QueryAnalyzer:
         
         if query_lower.startswith('how to'):
             scores[ResearchDomain.HOW_TO] += 10
+
+        if re.search(r'\b(best|top)\s+(ways?|methods?|ideas?)\s+to\b', query_lower):
+            scores[ResearchDomain.HOW_TO] += 8
+            scores[ResearchDomain.PRODUCTS] = max(0, scores[ResearchDomain.PRODUCTS] - 3)
+            scores[ResearchDomain.COMPARISON] = max(0, scores[ResearchDomain.COMPARISON] - 2)
+
+        if re.search(r'\b(ways?|methods?|ideas?)\s+to\b', query_lower):
+            scores[ResearchDomain.HOW_TO] += 4
+
+        if re.search(r'\b(top|best)\b', query_lower) and not any(
+            entity in query_lower for entity in self.DOMAIN_PATTERNS[ResearchDomain.PRODUCTS]['entities']
+        ):
+            scores[ResearchDomain.PRODUCTS] = max(0, scores[ResearchDomain.PRODUCTS] - 2)
         
         # Find best match
         best_domain = max(scores, key=scores.get)
@@ -142,7 +155,7 @@ class QueryAnalyzer:
         }
         
         # Override based on query hints
-        if 'list' in query or 'top' in query:
+        if domain in {ResearchDomain.HOW_TO, ResearchDomain.GENERAL} and ('list' in query or 'top' in query):
             return OutputFormat.LIST
         
         if 'compare' in query or 'vs' in query:
